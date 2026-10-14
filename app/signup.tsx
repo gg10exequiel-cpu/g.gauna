@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
+import { register } from '../services/authApi';
 import { ArrowLeft, Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 
 export default function SignupScreen() {
@@ -19,14 +20,35 @@ export default function SignupScreen() {
   const [error, setError] = useState<string | null>(null);
   const [focusedField, setFocusedField] = useState<'email' | 'password' | null>(null);
 
-  function handleSignUp() {
-    if (!email.trim() || password.length < 6) {
-      setError('Introduce un correo válido y una contraseña de al menos 6 caracteres.');
-      return;
-    }
-    setError(null);
-    router.replace('/home');
+  
+async function handleSignUp() {
+  const cleanEmail = email.trim();
+
+  if (!cleanEmail || !cleanEmail.includes('@')) {
+    setError('Introduce un correo electrónico válido.');
+    return;
   }
+
+  if (password.length < 8 || password.length > 72) {
+    setError('La contraseña debe tener entre 8 y 72 caracteres.');
+    return;
+  }
+
+  try {
+    setError(null);
+
+    await register(cleanEmail, password);
+
+    router.replace('/');
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : 'No se pudo crear la cuenta. Intenta nuevamente.'
+    );
+  }
+}
+
 
   return (
     <SafeAreaView className="flex-1 bg-[#F4F7F6]">

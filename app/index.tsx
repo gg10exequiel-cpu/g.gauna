@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
+import { login } from '../services/authApi';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 
 export default function LoginScreen() {
@@ -19,14 +20,28 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [focusedField, setFocusedField] = useState<'email' | 'password' | null>(null);
 
-  function handleSignIn() {
-    if (!email.trim() || !password) {
-      setError('Por favor completa todos los campos.');
-      return;
-    }
-    setError(null);
-    router.replace('/home');
+  
+async function handleSignIn() {
+  if (!email.trim() || !password) {
+    setError('Por favor completa todos los campos.');
+    return;
   }
+
+  try {
+    setError(null);
+
+    await login(email.trim(), password);
+
+    router.replace('/home');
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : 'No se pudo iniciar sesión. Intenta nuevamente.'
+    );
+  }
+}
+
 
   return (
     <SafeAreaView className="flex-1 bg-[#F4F7F6]">
